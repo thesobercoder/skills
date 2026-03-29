@@ -5,7 +5,7 @@ Custom [Claude Code](https://claude.com/claude-code) skills.
 ## Installation
 
 ```
-/skills add thesobercoder/skills
+npx skills add thesobercoder/skills
 ```
 
 ## Skills
