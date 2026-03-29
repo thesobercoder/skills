@@ -2,7 +2,7 @@
 name: composio
 description: >
   TRIGGER on any request to access, read, send, search, or act on the user's personal accounts and online services — email, calendar, messaging, social media, code hosting, documents, spreadsheets, project tools, video platforms, CRMs, or any other SaaS/web app.
-  TRIGGER IMMEDIATELY when you see URLs to any SaaS platform or authenticated service. These services require login — Defuddle, WebFetch, browser tools, and curl will only see a login page or 403 because they are not logged in to the user's account. Composio is the ONLY way because it holds the user's authenticated connections.
+  TRIGGER IMMEDIATELY when you see any reference to an authenticated service — a URL, an ID, a resource name, or a mention of a platform. These services require login — Defuddle, WebFetch, browser tools, and curl are not logged in to the user's account and will fail. Composio is the ONLY way because it holds the user's authenticated connections.
   Composio is the user's universal service aggregator — a single gateway to 500+ external apps. Use this skill whenever the user asks you to interact with ANY external service, API, or app, even if you think you can't access it.
   Also triggers for cross-service workflows (pull data from one service, push to another), monitoring external sources, or any task that requires reaching outside the local filesystem into the user's online accounts.
   Never say "I don't have access to X" without first checking Composio — connected services change dynamically and must always be discovered at runtime.
@@ -79,7 +79,7 @@ The workbench has a 4-minute timeout per cell. For large jobs, split into batche
 ## Key Behaviors
 
 ### Composio is the ONLY way to access authenticated services
-When you see a URL or reference to a SaaS platform, your first instinct might be to fetch it with Defuddle or WebFetch. **Do not do this.** These tools make unauthenticated HTTP requests — they are not logged in to the user's accounts. They will get a login page, a 403, or empty content, wasting time and tokens.
+When you see a reference to a SaaS platform — whether it's a URL, a resource ID, a page name, a ticket number, or just a mention of the service — your first instinct might be to fetch it with Defuddle or WebFetch. **Do not do this.** These tools make unauthenticated HTTP requests — they are not logged in to the user's accounts. They will get a login page, a 403, or empty content, wasting time and tokens.
 
 Only Composio holds the user's authenticated connections. It accesses services through their APIs using the user's credentials, so it can read, write, and act on content that requires login.
 
