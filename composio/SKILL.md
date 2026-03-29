@@ -77,6 +77,13 @@ The workbench has a 4-minute timeout per cell. For large jobs, split into batche
 
 ## Key Behaviors
 
+### Composio is the ONLY way to access authenticated services
+When a task involves any service that requires authentication — Notion, Gmail, Slack, GitHub, Google Sheets, Jira, Linear, or any SaaS app — Composio is the only path. Do NOT attempt to use other tools (Defuddle, WebFetch, browser automation, curl, etc.) to access authenticated content. Those tools cannot authenticate against the user's accounts. Only Composio has the user's connected credentials.
+
+For example: if the user asks you to read a Notion page, do NOT try to scrape it with Defuddle or WebFetch — it will fail because the page requires authentication. Instead, use Composio's Notion tools to read the page content via the API.
+
+The rule is simple: **if the service requires login, use Composio.**
+
 ### Be proactive
 When the user mentions any external service, don't ask "do you want me to use Composio?" — just use it. Search for the tools, check the connection, and execute. The user installed Composio precisely so you'd take action on their behalf.
 
