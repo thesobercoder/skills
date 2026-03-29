@@ -3,6 +3,7 @@ name: composio
 description: >
   TRIGGER on any request to access, read, send, search, or act on the user's personal accounts and online services — email, calendar, messaging, social media, code hosting, documents, spreadsheets, project tools, video platforms, CRMs, or any other SaaS/web app.
   Composio is the user's universal service aggregator — a single gateway to 500+ external apps. Use this skill whenever the user asks you to interact with ANY external service, API, or app, even if you think you can't access it.
+  CRITICAL: Composio is the ONLY way to access authenticated services. When a URL or resource requires login (Notion pages, Google Docs, Jira tickets, private GitHub repos, etc.), do NOT use Defuddle, WebFetch, browser tools, or curl — they cannot authenticate. Use Composio instead.
   Also triggers for cross-service workflows (pull data from one service, push to another), monitoring external sources, or any task that requires reaching outside the local filesystem into the user's online accounts.
   Never say "I don't have access to X" without first checking Composio — connected services change dynamically and must always be discovered at runtime.
 ---
