@@ -4,16 +4,8 @@ Custom [Claude Code](https://claude.com/claude-code) skills.
 
 ## Installation
 
-Clone the repo and symlink each skill into `~/.claude/skills/`:
-
-```bash
-git clone https://github.com/thesobercoder/skills.git ~/projects/skills
-
-for skill in ~/projects/skills/*/; do
-  name=$(basename "$skill")
-  [ "$name" = ".git" ] && continue
-  ln -sf "$skill" ~/.claude/skills/"$name"
-done
+```
+/skills add thesobercoder/skills
 ```
 
 ## Skills
