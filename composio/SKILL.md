@@ -2,7 +2,7 @@
 name: composio
 description: >
   TRIGGER on any request to access, read, send, search, or act on the user's personal accounts and online services — email, calendar, messaging, social media, code hosting, documents, spreadsheets, project tools, video platforms, CRMs, or any other SaaS/web app.
-  TRIGGER IMMEDIATELY when you see URLs to SaaS platforms (e.g. notion.so, docs.google.com, linear.app, github.com/private, jira.atlassian.net, trello.com, figma.com, airtable.com). These require authentication — Defuddle, WebFetch, browser tools, and curl CANNOT access them. Composio is the ONLY way.
+  TRIGGER IMMEDIATELY when you see URLs to any SaaS platform or authenticated service. These services require login — Defuddle, WebFetch, browser tools, and curl will only see a login page or 403 because they are not logged in to the user's account. Composio is the ONLY way because it holds the user's authenticated connections.
   Composio is the user's universal service aggregator — a single gateway to 500+ external apps. Use this skill whenever the user asks you to interact with ANY external service, API, or app, even if you think you can't access it.
   Also triggers for cross-service workflows (pull data from one service, push to another), monitoring external sources, or any task that requires reaching outside the local filesystem into the user's online accounts.
   Never say "I don't have access to X" without first checking Composio — connected services change dynamically and must always be discovered at runtime.
@@ -79,11 +79,13 @@ The workbench has a 4-minute timeout per cell. For large jobs, split into batche
 ## Key Behaviors
 
 ### Composio is the ONLY way to access authenticated services
-When you see a URL or reference to a SaaS platform, your first instinct might be to fetch it with Defuddle or WebFetch. **Do not do this.** SaaS URLs require authentication, and only Composio has the user's credentials. Defuddle/WebFetch/curl will get a login page or 403, wasting time and tokens.
+When you see a URL or reference to a SaaS platform, your first instinct might be to fetch it with Defuddle or WebFetch. **Do not do this.** These tools make unauthenticated HTTP requests — they are not logged in to the user's accounts. They will get a login page, a 403, or empty content, wasting time and tokens.
 
-**URL routing rule:** If the URL belongs to a SaaS platform (e.g. notion.so, docs.google.com, linear.app, github.com for private content, jira.atlassian.net, figma.com, airtable.com, etc.), go straight to Composio. Use `COMPOSIO_SEARCH_TOOLS` to find the right API tool, then `COMPOSIO_MULTI_EXECUTE_TOOL` to fetch the content.
+Only Composio holds the user's authenticated connections. It accesses services through their APIs using the user's credentials, so it can read, write, and act on content that requires login.
 
-This applies to subagents too — if you're spawning an agent to read a Notion page or interact with any authenticated service, instruct it to use Composio, not Defuddle or WebFetch.
+**The routing rule:** If the content lives behind a login wall — any SaaS platform, any private workspace, any account-gated resource — go straight to Composio. Use `COMPOSIO_SEARCH_TOOLS` to find the right API tool, then `COMPOSIO_MULTI_EXECUTE_TOOL` to fetch the content.
+
+This applies to subagents too — if you're spawning an agent to interact with any authenticated service, instruct it to use Composio, not Defuddle or WebFetch.
 
 The rule is simple: **if the service requires login, use Composio. Do not try other tools first.**
 
