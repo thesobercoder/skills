@@ -137,7 +137,32 @@ If the environment blocks verification, say exactly what failed and whether it i
 
 The PR title must follow conventional commit style.
 
-The PR body must be concise and issue-linked. Prefer one of these patterns.
+The PR body must be concise and issue-linked.
+
+Default to this structure unless there is a strong reason to go shorter:
+
+```md
+Fixes #12345
+
+## Summary
+
+- short bullet on the root problem
+- short bullet on the fix
+- short bullet on any regression coverage or notable edge case
+
+## Verification
+
+- `bun test ...`
+- `bun typecheck`
+```
+
+Treat this as the normal opencode PR shape for small bug fixes.
+
+Only use a shorter body like `Fixes #12345` by itself when the change is extremely obvious and the diff already tells the full story.
+
+Only use more of the repo template when the change genuinely needs more context.
+
+Prefer one of these patterns.
 
 ### Minimal pattern
 
@@ -148,6 +173,8 @@ Fixes #12345
 ### Slightly fuller pattern
 
 ```md
+Fixes #12345
+
 ## Summary
 
 - short bullet on the root problem
@@ -163,12 +190,15 @@ Fixes #12345
 
 Use the repo template when it adds useful context, but keep each section brief and human.
 
+Do not mechanically fill every template section with fluff. If a section does not add value, keep it minimal.
+
 Good PR writing rules:
 
 - Lead with the issue link.
 - State the root problem plainly.
 - State the fix plainly.
 - List concrete verification commands.
+- Match the tone of recently merged opencode PRs, not generic OSS boilerplate.
 - Keep it short enough that a maintainer can skim it in seconds.
 
 Bad PR writing patterns:
