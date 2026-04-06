@@ -1,6 +1,6 @@
 ---
 name: opencode-contributor
-description: Run the full contribution workflow for anomalyco/opencode, from repo-state checks through issue selection, implementation, verification, and PR drafting. Use this whenever the user wants to contribute to opencode, look for issues in opencode, sync their fork, prepare an opencode PR, or ask for the highest-impact small fix in this repo. Only use it for the opencode repo or the user's fork of it, and abort if the current repo is not opencode.
+description: Run the full contribution workflow for anomalyco/opencode, from repo-state checks through issue selection, implementation, verification, and PR drafting. Use this whenever the user wants to contribute to OpenCode, look for issues in OpenCode, sync their fork, prepare an OpenCode PR, or ask for the highest-impact small fix in this repo. Only use it for the OpenCode repo or the user's fork of it, and abort if the current repo is not opencode.
 ---
 
 # OpenCode Contributor
@@ -50,7 +50,7 @@ When the worktree is clean and the user is ready to start fresh:
 
 Prefer a clean, explicit git flow. Do not use destructive commands.
 
-## Step 4: Apply opencode contribution rules strictly
+## Step 4: Apply OpenCode contribution rules strictly
 
 Read and follow the repo guidance, especially `CONTRIBUTING.md`, `AGENTS.md`, and the PR template.
 
@@ -65,21 +65,21 @@ Non-negotiable rules:
 
 When choosing work, bias toward:
 
-- existing open issues
-- unassigned issues
-- small scope with clear repro
-- high user impact
-- low design ambiguity
+- Existing open issues
+- Unassigned issues
+- Small scope with clear repro
+- High user impact
+- Low design ambiguity
 
 Before approving a candidate, run a contribution viability check.
 
 The issue is viable only if all of these are true:
 
-- there is an existing open issue
-- no open PR already covers the same issue or fix area
-- issue comments do not show that maintainers already redirected or blocked the approach
-- the likely diff is still small and reviewable
-- the issue still looks worth maintainer time relative to other options
+- There is an existing open issue
+- No open PR already covers the same issue or fix area
+- Issue comments do not show that maintainers already redirected or blocked the approach
+- The likely diff is still small and reviewable
+- The issue still looks worth maintainer time relative to other options
 
 If any of those fail, do not start coding. Tell the user why and either pick another issue or suggest commenting first.
 
@@ -93,24 +93,24 @@ Before choosing an issue or starting implementation, check whether there is alre
 
 At minimum:
 
-- search open PRs that reference the issue number in the title or body
-- search open PRs by the relevant subsystem, tool, or error terms
-- inspect issue comments for "I'm working on this" signals when present
+- Search open PRs that reference the issue number in the title or body
+- Search open PRs by the relevant subsystem, tool, or error terms
+- Inspect issue comments for "I'm working on this" signals when present
 
 If an open PR already covers the same issue or substantially overlaps the same fix, stop and tell the user before doing implementation work or opening another PR.
 
 If there is overlap but the existing PR looks incomplete or questionable, do not open a competing PR by default. Prefer one of these paths:
 
-1. comment on the existing PR with a useful implementation note
-2. test the existing PR locally and report findings
-3. pick a different issue
+1. Comment on the existing PR with a useful implementation note.
+2. Test the existing PR locally and report findings.
+3. Pick a different issue.
 
 Do not assume that the absence of an assignee means the issue is free.
 
 Also inspect related merged PRs and recently closed PRs in the same area.
 
-- merged PRs show accepted scope and tone
-- closed PRs often show what maintainers rejected or considered duplicate
+- Merged PRs show accepted scope and tone.
+- Closed PRs often show what maintainers rejected or considered duplicate.
 
 Look for work that fits the contribution rules:
 
@@ -165,14 +165,14 @@ Keep changes narrow. Do not refactor unrelated code just because it is nearby.
 
 The environment preflight should check the practical blockers that can waste time late in the flow:
 
-- required Bun version from `package.json`
+- Required Bun version from `package.json`
 - `gh` auth works
-- expected remotes are present
-- repo hooks can run with current tool versions
+- Expected remotes are present
+- Repo hooks can run with current tool versions
 
 ## Step 8: Verification expectations
 
-For opencode, verify from package directories, not the repo root.
+For OpenCode, verify from package directories, not the repo root.
 
 Prefer the smallest meaningful verification set that proves the fix:
 
@@ -184,7 +184,7 @@ If the environment blocks verification, say exactly what failed and whether it i
 
 Before pushing or opening a PR, confirm that the required local hooks and verification steps pass.
 
-## Step 9: Draft PR text in opencode style
+## Step 9: Draft PR text in OpenCode style
 
 The PR title must follow conventional commit style.
 
@@ -202,12 +202,12 @@ The PR body must use that template while still staying concise and human.
 
 When filling the template:
 
-- keep every answer short
-- remove AI-sounding filler
-- keep the issue reference explicit
-- state the root problem and fix plainly
-- list exact verification commands
-- leave screenshots minimal or blank when the change is not UI-related
+- Keep every answer short.
+- Remove AI-sounding filler.
+- Keep the issue reference explicit.
+- State the root problem and fix plainly.
+- List exact verification commands.
+- Leave screenshots minimal or blank when the change is not UI-related.
 
 Fill every required section from the live template and keep the answers brief.
 
@@ -231,23 +231,23 @@ Good PR writing rules:
 
 Bad PR writing patterns:
 
-- long prose blocks
-- generic AI summaries
-- inflated claims
-- repeating obvious diffs in paragraph form
+- Long prose blocks
+- Generic AI summaries
+- Inflated claims
+- Repeating obvious diffs in paragraph form
 
 ## Step 10: Default behavior
 
 Unless the user asks to stop earlier, carry the workflow through end to end:
 
-1. repo check
-2. worktree check
-3. sync
-4. issue triage
-5. viability check
-6. implementation
-7. verification
-8. branch/commit guidance
+1. Repo check
+2. Worktree check
+3. Sync
+4. Issue triage
+5. Viability check
+6. Implementation
+7. Verification
+8. Branch/commit guidance
 9. PR draft
 
 Only stop early when the user wants discussion only, or when blocked by missing information, an unsafe operation, unfinished local work that requires a user decision, or a viability check that fails.
@@ -264,14 +264,14 @@ Only stop early when the user wants discussion only, or when blocked by missing 
 
 Before finishing, confirm all of these are true:
 
-- current repo is opencode or the user's opencode fork
-- existing issue is linked
-- issue comments were read
-- no open duplicate PR already covers the same issue or fix area
-- no maintainer comments suggest the approach is unwanted or outdated
-- change is small and aligned with contribution rules
-- the issue is worth maintainer review time
-- local toolchain and hooks were checked before push
-- verification ran from the correct package directory
-- PR title matches repo style
-- PR body is short and does not read like AI-generated filler
+- Current repo is opencode or the user's opencode fork.
+- Existing issue is linked.
+- Issue comments were read.
+- No open duplicate PR already covers the same issue or fix area.
+- No maintainer comments suggest the approach is unwanted or outdated.
+- Change is small and aligned with contribution rules.
+- The issue is worth maintainer review time.
+- Local toolchain and hooks were checked before push.
+- Verification ran from the correct package directory.
+- PR title matches repo style.
+- PR body is short and does not read like AI-generated filler.
