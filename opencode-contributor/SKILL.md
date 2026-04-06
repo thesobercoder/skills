@@ -209,42 +209,9 @@ When filling the template:
 - list exact verification commands
 - leave screenshots minimal or blank when the change is not UI-related
 
-For the current opencode template, the usual good shape is:
+Fill every required section from the live template and keep the answers brief.
 
-```md
-### Issue for this PR
-
-Closes #12345
-
-### Type of change
-
-- [x] Bug fix
-- [ ] New feature
-- [ ] Refactor / code improvement
-- [ ] Documentation
-
-### What does this PR do?
-
-short, plain explanation of the issue, the fix, and why it works
-
-### How did you verify your code works?
-
-- `bun test ...`
-- `bun typecheck`
-
-### Screenshots / recordings
-
-N/A
-
-### Checklist
-
-- [x] I have tested my changes locally
-- [x] I have not included unrelated changes in this PR
-```
-
-Treat this as the normal opencode PR shape for small bug fixes unless the live template changes.
-
-If the template changes, follow the live file rather than this example.
+If the template changes, follow the live file rather than any prior memory of the repo.
 
 Do not ignore required template sections just because some older merged PRs were shorter.
 
