@@ -71,9 +71,46 @@ When choosing work, bias toward:
 - high user impact
 - low design ambiguity
 
+Before approving a candidate, run a contribution viability check.
+
+The issue is viable only if all of these are true:
+
+- there is an existing open issue
+- no open PR already covers the same issue or fix area
+- issue comments do not show that maintainers already redirected or blocked the approach
+- the likely diff is still small and reviewable
+- the issue still looks worth maintainer time relative to other options
+
+If any of those fail, do not start coding. Tell the user why and either pick another issue or suggest commenting first.
+
 ## Step 5: Triage issues with `gh`
 
 Use `gh` to inspect open issues, labels, assignees, comments, and recency.
+
+Read the issue comments before deciding to work on the issue. Do not rely on the title and body alone.
+
+Before choosing an issue or starting implementation, check whether there is already an open PR for that issue or for the same fix area.
+
+At minimum:
+
+- search open PRs that reference the issue number in the title or body
+- search open PRs by the relevant subsystem, tool, or error terms
+- inspect issue comments for "I'm working on this" signals when present
+
+If an open PR already covers the same issue or substantially overlaps the same fix, stop and tell the user before doing implementation work or opening another PR.
+
+If there is overlap but the existing PR looks incomplete or questionable, do not open a competing PR by default. Prefer one of these paths:
+
+1. comment on the existing PR with a useful implementation note
+2. test the existing PR locally and report findings
+3. pick a different issue
+
+Do not assume that the absence of an assignee means the issue is free.
+
+Also inspect related merged PRs and recently closed PRs in the same area.
+
+- merged PRs show accepted scope and tone
+- closed PRs often show what maintainers rejected or considered duplicate
 
 Look for work that fits the contribution rules:
 
@@ -91,6 +128,7 @@ When recommending candidates, explain:
 2. Why the scope seems small.
 3. What files or subsystems are likely involved.
 4. Any sign that the issue is risky, duplicated, or already in flight.
+5. Why this is worth maintainer review time compared with nearby issues.
 
 ## Step 6: Inspect merged PR style before drafting
 
@@ -113,13 +151,22 @@ Do not write theatrical explanations, long narratives, or AI-sounding filler.
 
 After an issue is chosen:
 
-1. Create a branch prefixed with the issue number.
-2. Make the smallest correct change.
-3. Follow the repo coding style.
-4. Add or extend regression coverage where it helps lock in the fix.
-5. Run targeted verification from the correct package directory.
+1. Run an environment preflight before writing code.
+2. Create a branch prefixed with the issue number.
+3. Re-run the duplicate PR check before writing code if issue triage happened earlier in the session.
+4. Make the smallest correct change.
+5. Follow the repo coding style.
+6. Add or extend regression coverage where it helps lock in the fix.
+7. Run targeted verification from the correct package directory.
 
 Keep changes narrow. Do not refactor unrelated code just because it is nearby.
+
+The environment preflight should check the practical blockers that can waste time late in the flow:
+
+- required Bun version from `package.json`
+- `gh` auth works
+- expected remotes are present
+- repo hooks can run with current tool versions
 
 ## Step 8: Verification expectations
 
@@ -133,34 +180,71 @@ Prefer the smallest meaningful verification set that proves the fix:
 
 If the environment blocks verification, say exactly what failed and whether it is a local toolchain issue or a code issue.
 
+Before pushing or opening a PR, confirm that the required local hooks and verification steps pass.
+
 ## Step 9: Draft PR text in opencode style
 
 The PR title must follow conventional commit style.
 
-The PR body must be concise and issue-linked.
+Before drafting the PR body, read the current repo template from `.github/pull_request_template.md` in the active opencode checkout.
 
-Default to this structure unless there is a strong reason to go shorter:
+Before creating the PR, run one final duplicate check against open PRs for the issue number and the same fix area.
+
+If a duplicate exists, stop and tell the user instead of opening a competing PR.
+
+If maintainer comments or issue discussion make the direction uncertain, prefer commenting first instead of opening a speculative PR.
+
+Do not hardcode a private PR template into this skill. The repo template can change, and the live file in the checkout is the source of truth.
+
+The PR body must use that template while still staying concise and human.
+
+When filling the template:
+
+- keep every answer short
+- remove AI-sounding filler
+- keep the issue reference explicit
+- state the root problem and fix plainly
+- list exact verification commands
+- leave screenshots minimal or blank when the change is not UI-related
+
+For the current opencode template, the usual good shape is:
 
 ```md
-Fixes #12345
+### Issue for this PR
 
-## Summary
+Closes #12345
 
-- short bullet on the root problem
-- short bullet on the fix
-- short bullet on any regression coverage or notable edge case
+### Type of change
 
-## Verification
+- [x] Bug fix
+- [ ] New feature
+- [ ] Refactor / code improvement
+- [ ] Documentation
+
+### What does this PR do?
+
+short, plain explanation of the issue, the fix, and why it works
+
+### How did you verify your code works?
 
 - `bun test ...`
 - `bun typecheck`
+
+### Screenshots / recordings
+
+N/A
+
+### Checklist
+
+- [x] I have tested my changes locally
+- [x] I have not included unrelated changes in this PR
 ```
 
-Treat this as the normal opencode PR shape for small bug fixes.
+Treat this as the normal opencode PR shape for small bug fixes unless the live template changes.
 
-Only use a shorter body like `Fixes #12345` by itself when the change is extremely obvious and the diff already tells the full story.
+If the template changes, follow the live file rather than this example.
 
-Only use more of the repo template when the change genuinely needs more context.
+Do not ignore required template sections just because some older merged PRs were shorter.
 
 Prefer one of these patterns.
 
@@ -188,7 +272,7 @@ Fixes #12345
 
 ### Template-backed pattern
 
-Use the repo template when it adds useful context, but keep each section brief and human.
+Use the live repo template, not a remembered copy, and keep each section brief and human.
 
 Do not mechanically fill every template section with fluff. If a section does not add value, keep it minimal.
 
@@ -216,10 +300,11 @@ Unless the user asks to stop earlier, carry the workflow through end to end:
 2. worktree check
 3. sync
 4. issue triage
-5. implementation
-6. verification
-7. branch/commit guidance
-8. PR draft
+5. viability check
+6. implementation
+7. verification
+8. branch/commit guidance
+9. PR draft
 
 Only stop early when the user wants discussion only, or when blocked by missing information, an unsafe operation, or unfinished local work that requires a user decision.
 
@@ -237,7 +322,12 @@ Before finishing, confirm all of these are true:
 
 - current repo is opencode or the user's opencode fork
 - existing issue is linked
+- issue comments were read
+- no open duplicate PR already covers the same issue or fix area
+- no maintainer comments suggest the approach is unwanted or outdated
 - change is small and aligned with contribution rules
+- the issue is worth maintainer review time
+- local toolchain and hooks were checked before push
 - verification ran from the correct package directory
 - PR title matches repo style
 - PR body is short and does not read like AI-generated filler
