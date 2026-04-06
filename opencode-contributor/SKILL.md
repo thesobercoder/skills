@@ -130,7 +130,7 @@ When recommending candidates, explain:
 4. Any sign that the issue is risky, duplicated, or already in flight.
 5. Why this is worth maintainer review time compared with nearby issues.
 
-## Step 6: Inspect merged PR style before drafting
+## Step 6: Inspect prior PRs before drafting
 
 Before drafting a PR title or body, inspect recently merged opencode PRs with `gh`.
 
@@ -144,6 +144,8 @@ Observed style to preserve:
   - `Fixes #123`, or
   - a short `## Summary` and `## Verification` section.
 - The tone is plain, factual, and compact.
+
+Also inspect recently closed PRs when they are related to the same subsystem or issue pattern. They often show duplicate work, rejected scope, or approaches maintainers did not want.
 
 Do not write theatrical explanations, long narratives, or AI-sounding filler.
 
@@ -246,32 +248,6 @@ If the template changes, follow the live file rather than this example.
 
 Do not ignore required template sections just because some older merged PRs were shorter.
 
-Prefer one of these patterns.
-
-### Minimal pattern
-
-```md
-Fixes #12345
-```
-
-### Slightly fuller pattern
-
-```md
-Fixes #12345
-
-## Summary
-
-- short bullet on the root problem
-- short bullet on the fix
-
-## Verification
-
-- `bun test ...`
-- `bun typecheck`
-```
-
-### Template-backed pattern
-
 Use the live repo template, not a remembered copy, and keep each section brief and human.
 
 Do not mechanically fill every template section with fluff. If a section does not add value, keep it minimal.
@@ -284,6 +260,7 @@ Good PR writing rules:
 - List concrete verification commands.
 - Match the tone of recently merged opencode PRs, not generic OSS boilerplate.
 - Keep it short enough that a maintainer can skim it in seconds.
+- Prefer plain sentences over bullet spam in the explanation section when one short paragraph is enough.
 
 Bad PR writing patterns:
 
@@ -306,7 +283,7 @@ Unless the user asks to stop earlier, carry the workflow through end to end:
 8. branch/commit guidance
 9. PR draft
 
-Only stop early when the user wants discussion only, or when blocked by missing information, an unsafe operation, or unfinished local work that requires a user decision.
+Only stop early when the user wants discussion only, or when blocked by missing information, an unsafe operation, unfinished local work that requires a user decision, or a viability check that fails.
 
 ## Communication style
 
