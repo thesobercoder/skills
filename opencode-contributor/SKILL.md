@@ -200,6 +200,10 @@ Do not hardcode a private PR template into this skill. The repo template can cha
 
 The PR body must use that template while still staying concise and human.
 
+If using `gh pr create --body "$(cat <<'EOF' ... EOF)"`, write plain final Markdown inside the heredoc.
+
+Do not carry shell escaping into the PR text itself. For example, do not leave escaped quotes like `\"` in the final body when normal `"` or plain text is correct.
+
 When filling the template:
 
 - Keep every answer short.
