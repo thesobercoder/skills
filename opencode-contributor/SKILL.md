@@ -146,10 +146,16 @@ Before any implementation work, stop and discuss the recommendation with the use
 
 That discussion must include:
 
-1. The best candidate.
-2. Why it is the best candidate compared with the nearby rejected options.
-3. The main risks or reasons it could still be a bad bet.
-4. Whether there are weaker fallback candidates worth considering if the top pick is rejected.
+1. The issue link.
+2. The issue title or heading.
+3. A brief description of the actual problem.
+4. Why it is the best candidate compared with the nearby rejected options.
+5. The main risks or reasons it could still be a bad bet.
+6. Whether there are weaker fallback candidates worth considering if the top pick is rejected.
+
+Present the issue link first so the user can open the exact ticket being proposed.
+
+Keep the problem summary brief and factual. The goal is to help the user approve or reject the candidate quickly.
 
 Do not create a branch, edit code, or start implementation until the user agrees on a candidate or explicitly asks you to proceed.
 
