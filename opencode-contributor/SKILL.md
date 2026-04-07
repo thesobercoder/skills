@@ -206,9 +206,12 @@ If the chosen issue starts looking wrong during preflight or early implementatio
 The environment preflight should check the practical blockers that can waste time late in the flow:
 
 - Required Bun version from `package.json`
+- Project dependencies are installed before running `bun typecheck`, tests, or hooks
 - `gh` auth works
 - Expected remotes are present
 - Repo hooks can run with current tool versions
+
+If dependencies are missing or stale, run the package installer first so later verification failures are more likely to reflect real code issues instead of local setup problems.
 
 ## Step 8: Verification expectations
 
