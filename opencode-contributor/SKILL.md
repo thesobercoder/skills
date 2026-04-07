@@ -13,6 +13,8 @@ Follow this workflow when helping the user contribute to `anomalyco/opencode`.
 - Prefer small, high-impact, reviewable changes.
 - Keep PR descriptions short, human, and specific.
 - Avoid switching context blindly when there is unfinished work.
+- Do not jump from research to coding without a user discussion and explicit go-ahead.
+- Prefer no PR over a weak or AI-sloppy PR.
 
 ## Step 1: Confirm repo identity
 
@@ -83,6 +85,16 @@ The issue is viable only if all of these are true:
 
 If any of those fail, do not start coding. Tell the user why and either pick another issue or suggest commenting first.
 
+Treat issue selection like peeling an onion:
+
+- Start with the strongest candidates first.
+- If the best candidate fails viability, explain why it failed.
+- Then move outward to the next layer of less-likely candidates instead of forcing the original pick.
+- Keep track of why each rejected layer was rejected so the user can see the decision process.
+- If every layer fails, stop there and tell the user no good candidate was found.
+
+No-candidate is a valid outcome. In this repo, a speculative or slop AI PR is worse than no PR.
+
 ## Step 5: Triage issues with `gh`
 
 Use `gh` to inspect open issues, labels, assignees, comments, and recency.
@@ -130,6 +142,31 @@ When recommending candidates, explain:
 4. Any sign that the issue is risky, duplicated, or already in flight.
 5. Why this is worth maintainer review time compared with nearby issues.
 
+Before any implementation work, stop and discuss the recommendation with the user.
+
+That discussion must include:
+
+1. The best candidate.
+2. Why it is the best candidate compared with the nearby rejected options.
+3. The main risks or reasons it could still be a bad bet.
+4. Whether there are weaker fallback candidates worth considering if the top pick is rejected.
+
+Do not create a branch, edit code, or start implementation until the user agrees on a candidate or explicitly asks you to proceed.
+
+Before writing the first character of code, use the `explore` subagent for complete and thorough code understanding of the relevant subsystem, prior fixes, and likely blast radius.
+
+This is mandatory, not optional.
+
+The exploration pass should establish at least:
+
+1. The concrete code path involved in the bug or issue.
+2. The smallest plausible fix location.
+3. Nearby files, tests, or abstractions that could be affected.
+4. Whether there is already an accepted pattern in the repo for this kind of fix.
+5. Any signs that the local hypothesis is wrong before code is written.
+
+Do not start coding until that exploration is complete and you can explain the relevant area clearly.
+
 ## Step 6: Inspect prior PRs before drafting
 
 Before drafting a PR title or body, inspect recently merged opencode PRs with `gh`.
@@ -151,17 +188,20 @@ Do not write theatrical explanations, long narratives, or AI-sounding filler.
 
 ## Step 7: Implement like a good repo citizen
 
-After an issue is chosen:
+After an issue is chosen and the user has agreed that it is the right candidate:
 
 1. Run an environment preflight before writing code.
-2. Create a branch prefixed with the issue number.
-3. Re-run the duplicate PR check before writing code if issue triage happened earlier in the session.
-4. Make the smallest correct change.
-5. Follow the repo coding style.
-6. Add or extend regression coverage where it helps lock in the fix.
-7. Run targeted verification from the correct package directory.
+2. Use the `explore` subagent to build thorough code understanding before touching code.
+3. Create a branch prefixed with the issue number.
+4. Re-run the duplicate PR check before writing code if issue triage happened earlier in the session.
+5. Make the smallest correct change.
+6. Follow the repo coding style.
+7. Add or extend regression coverage where it helps lock in the fix.
+8. Run targeted verification from the correct package directory.
 
 Keep changes narrow. Do not refactor unrelated code just because it is nearby.
+
+If the chosen issue starts looking wrong during preflight or early implementation, stop, explain the new evidence, and return to issue selection rather than pushing through.
 
 The environment preflight should check the practical blockers that can waste time late in the flow:
 
@@ -249,10 +289,11 @@ Unless the user asks to stop earlier, carry the workflow through end to end:
 3. Sync
 4. Issue triage
 5. Viability check
-6. Implementation
-7. Verification
-8. Branch/commit guidance
-9. PR draft
+6. Candidate discussion and user approval
+7. Implementation
+8. Verification
+9. Branch/commit guidance
+10. PR draft
 
 Only stop early when the user wants discussion only, or when blocked by missing information, an unsafe operation, unfinished local work that requires a user decision, or a viability check that fails.
 
@@ -273,8 +314,10 @@ Before finishing, confirm all of these are true:
 - Issue comments were read.
 - No open duplicate PR already covers the same issue or fix area.
 - No maintainer comments suggest the approach is unwanted or outdated.
+- The chosen issue was discussed with the user before implementation.
 - Change is small and aligned with contribution rules.
 - The issue is worth maintainer review time.
+- Rejected nearby candidates were ruled out for concrete reasons, or no viable candidate existed.
 - Local toolchain and hooks were checked before push.
 - Verification ran from the correct package directory.
 - PR title matches repo style.
