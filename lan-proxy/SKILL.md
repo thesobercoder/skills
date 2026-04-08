@@ -39,9 +39,15 @@ Create a file in `/etc/caddy/conf.d/<service-name>.caddy`:
 
 ```
 :<external-port> {
-	reverse_proxy 127.0.0.1:<internal-port>
+	reverse_proxy 127.0.0.1:<internal-port> {
+		header_up Host 127.0.0.1:<internal-port>
+	}
 }
 ```
+
+Make this the default for localhost-bound services. Some backends validate the `Host` header and reject the LAN-facing host that Caddy forwards by default.
+
+Example: a service on `127.0.0.1:14788` proxied from LAN port `4788` can reject `Host: 192.168.0.222:4788` as forbidden. Rewriting the upstream `Host` to `127.0.0.1:14788` avoids that class of failure.
 
 ### 2. Configure the service to bind to localhost
 
@@ -101,7 +107,9 @@ set -euo pipefail
 # 1. Create Caddy proxy config
 cat > /etc/caddy/conf.d/<service-name>.caddy << 'EOF'
 :<external-port> {
-	reverse_proxy 127.0.0.1:<internal-port>
+	reverse_proxy 127.0.0.1:<internal-port> {
+		header_up Host 127.0.0.1:<internal-port>
+	}
 }
 EOF
 
@@ -126,6 +134,7 @@ Save to `~/setup-proxy.sh`, make executable, tell user to run it. Clean up after
 - Per-service configs: `/etc/caddy/conf.d/<service-name>.caddy`
 - Caddy runs as a system service: `systemctl status caddy`
 - Auto HTTPS is disabled (LAN-only, no domain names)
+- Default proxy behavior for localhost-bound services: rewrite upstream `Host` to `127.0.0.1:<internal-port>`
 
 ## Why Docker Breaks ufw
 
@@ -164,6 +173,8 @@ curl -s -o /dev/null -w "%{http_code}" http://<LAN_IP>:<port>
 curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<internal-port>
 ```
 
+If the backend works directly on `127.0.0.1:<internal-port>` but the LAN-facing proxy returns `403` or another app-level rejection, inspect the Caddy config for a missing `header_up Host 127.0.0.1:<internal-port>`.
+
 ### Step 2: Interpret results
 
 | Caddy | Backend | ufw | before.rules | Diagnosis |
@@ -171,6 +182,7 @@ curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:<internal-port>
 | running | listening on 127.0.0.1 | ALLOW | present | Should work — ask user to test from remote device |
 | running | listening on 127.0.0.1 | ALLOW | missing | Docker dropping traffic — add before.rules entry |
 | running | listening on 127.0.0.1 | missing | missing | Firewall not configured — add both ufw rule and before.rules |
+| running | listening on 127.0.0.1 | ALLOW | present | Direct localhost works but LAN proxy returns 403 — backend is likely rejecting the forwarded Host header, so add `header_up Host 127.0.0.1:<internal-port>` |
 | running | not listening | — | — | Service is down — restart it |
 | running | listening on 0.0.0.0 | — | — | Service not reconfigured — change it to bind to 127.0.0.1:<internal-port> |
 | not running | — | — | — | Start Caddy: `sudo systemctl start caddy` |
