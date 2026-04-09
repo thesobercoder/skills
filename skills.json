@@ -1,9 +1,10 @@
 {
-  "install_targets": [
-    "~/.agents/skills",
-    "~/.claude/skills"
-  ],
+  "install_targets": ["~/.agents/skills", "~/.claude/skills"],
   "third_party_repos": [
+    {
+      "repo": "https://github.com/vercel-labs/opensrc",
+      "only": ["packages/opensrc/skills/opensrc"]
+    },
     {
       "repo": "https://github.com/anthropics/skills",
       "only": [
@@ -27,20 +28,14 @@
     },
     {
       "repo": "https://github.com/mcollina/skills",
-      "only": [
-        "skills/node",
-        "skills/nodejs-core",
-        "skills/typescript-magician"
-      ]
+      "only": ["skills/node", "skills/typescript-magician"]
     },
     {
       "repo": "https://github.com/coleam00/excalidraw-diagram-skill"
     },
     {
       "repo": "https://github.com/remotion-dev/skills",
-      "only": [
-        "skills/remotion"
-      ]
+      "only": ["skills/remotion"]
     },
     {
       "repo": "https://github.com/pbakaus/impeccable",
@@ -51,33 +46,23 @@
     },
     {
       "repo": "https://github.com/kepano/obsidian-skills",
-      "only": [
-        "skills/defuddle"
-      ]
+      "only": ["skills/defuddle"]
     },
     {
       "repo": "https://github.com/Shpigford/skills",
-      "only": [
-        "but-for-real"
-      ]
+      "only": ["but-for-real"]
     },
     {
       "repo": "https://github.com/railwayapp/railway-skills",
-      "only": [
-        "plugins/railway/skills/use-railway"
-      ]
+      "only": ["plugins/railway/skills/use-railway"]
     },
     {
       "repo": "https://github.com/vercel-labs/agent-browser",
-      "only": [
-        "skills/agent-browser"
-      ]
+      "only": ["skills/agent-browser"]
     },
     {
       "repo": "https://github.com/shadcn/ui",
-      "only": [
-        "skills/shadcn"
-      ]
+      "only": ["skills/shadcn"]
     },
     {
       "repo": "https://github.com/mattpocock/skills",

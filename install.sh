@@ -35,11 +35,15 @@ function git(args, cwd) {
   }).trim();
 }
 
-function ensureRepo(repoUrl) {
-  const slug = repoUrl
+function repoSlug(repoUrl) {
+  return repoUrl
     .replace(/^https?:\/\/github\.com\//, '')
     .replace(/\.git$/, '')
     .replace(/[^a-zA-Z0-9._-]+/g, '__');
+}
+
+function ensureRepo(repoUrl) {
+  const slug = repoSlug(repoUrl);
   const repoPath = path.join(externalDir, slug);
 
   if (!fs.existsSync(repoPath)) {
@@ -49,6 +53,18 @@ function ensureRepo(repoUrl) {
   }
 
   return path.resolve(repoPath);
+}
+
+function pruneExternalRepos(repoConfigs) {
+  if (!fs.existsSync(externalDir)) return;
+
+  const expectedRepoSlugs = new Set((repoConfigs || []).map((repoConfig) => repoSlug(repoConfig.repo)));
+
+  for (const entry of fs.readdirSync(externalDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    if (expectedRepoSlugs.has(entry.name)) continue;
+    fs.rmSync(path.join(externalDir, entry.name), { recursive: true, force: true });
+  }
 }
 
 function getExternalRepoRoot(sourcePath) {
@@ -266,6 +282,8 @@ function installTarget(targetPath, sourcePath, targetBase) {
 const targets = (config.install_targets || []).map(expandHome);
 const installed = [];
 const seen = new Set();
+
+pruneExternalRepos(config.third_party_repos || []);
 
 for (const skillDir of collectLocalSkillDirs()) {
   const skillName = parseSkillName(path.join(skillDir, 'SKILL.md'));
