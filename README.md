@@ -1,20 +1,24 @@
 # Skills
 
-Custom skills.
+Custom skills plus selected third-party skills managed from this repository.
 
 ## Installation
 
-Recommended, install globally:
+Run the root installer:
 
 ```
-npx skills add thesobercoder/skills -g
+./install.sh
 ```
 
-Install only in the current project:
+This installer:
 
-```
-npx skills add thesobercoder/skills
-```
+- installs all local skills in this repo
+- clones selected third-party skill repos into `./.external/`
+- refreshes both `~/.agents/skills` and `~/.claude/skills`
+
+Third-party skill sources are configured in `skills.json`.
+
+Most skills are installed as symlinks. Skills with `install_mode: materialize` are copied into the target directories so install-time placeholders can be expanded safely.
 
 ## Skills In This Repo
 
@@ -22,6 +26,6 @@ npx skills add thesobercoder/skills
 |-------|-------------|
 | [composio](composio/) | Universal service aggregator — gateway to 500+ external apps via Composio MCP |
 | [lan-proxy](lan-proxy/) | Expose local services over LAN via Caddy reverse proxy and ufw firewall |
-| [repo-skill-creator](repo-skill-creator/) | Create repo-backed skills here, symlink them into `~/.agents/skills` and `~/.claude/skills`, and keep the README updated |
+| [repo-skill-creator](repo-skill-creator/) | Create repo-backed skills here, refresh them with `./install.sh`, and keep the README updated |
 | [opencode-contributor](opencode-contributor/) | Run the opencode contribution workflow from repo checks through PR drafting |
 | [user-service](user-service/) | Create and manage systemd user-level services for CLI tools |

@@ -1,0 +1,93 @@
+{
+  "install_targets": [
+    "~/.agents/skills",
+    "~/.claude/skills"
+  ],
+  "third_party_repos": [
+    {
+      "repo": "https://github.com/anthropics/skills",
+      "only": [
+        "skills/docx",
+        "skills/pdf",
+        "skills/pptx",
+        "skills/xlsx",
+        "skills/skill-creator"
+      ]
+    },
+    {
+      "repo": "https://github.com/vercel-labs/agent-skills",
+      "only": [
+        "skills/react-best-practices",
+        "skills/web-design-guidelines",
+        "skills/composition-patterns"
+      ]
+    },
+    {
+      "repo": "https://github.com/zarazhangrui/frontend-slides"
+    },
+    {
+      "repo": "https://github.com/mcollina/skills",
+      "only": [
+        "skills/node",
+        "skills/nodejs-core",
+        "skills/typescript-magician"
+      ]
+    },
+    {
+      "repo": "https://github.com/coleam00/excalidraw-diagram-skill"
+    },
+    {
+      "repo": "https://github.com/remotion-dev/skills",
+      "only": [
+        "skills/remotion"
+      ]
+    },
+    {
+      "repo": "https://github.com/pbakaus/impeccable",
+      "only": [
+        "source/skills/frontend-design",
+        "source/skills/teach-impeccable"
+      ]
+    },
+    {
+      "repo": "https://github.com/kepano/obsidian-skills",
+      "only": [
+        "skills/defuddle"
+      ]
+    },
+    {
+      "repo": "https://github.com/Shpigford/skills",
+      "only": [
+        "but-for-real"
+      ]
+    },
+    {
+      "repo": "https://github.com/railwayapp/railway-skills",
+      "only": [
+        "plugins/railway/skills/use-railway"
+      ]
+    },
+    {
+      "repo": "https://github.com/vercel-labs/agent-browser",
+      "only": [
+        "skills/agent-browser"
+      ]
+    },
+    {
+      "repo": "https://github.com/shadcn/ui",
+      "only": [
+        "skills/shadcn"
+      ]
+    },
+    {
+      "repo": "https://github.com/mattpocock/skills",
+      "only": [
+        "grill-me",
+        "write-a-prd",
+        "tdd",
+        "prd-to-issues",
+        "improve-codebase-architecture"
+      ]
+    }
+  ]
+}
