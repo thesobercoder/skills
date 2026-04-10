@@ -25,6 +25,7 @@ Most skills are installed as symlinks. Skills with `install_mode: materialize` a
 | Skill | Description |
 |-------|-------------|
 | [composio](composio/) | Universal service aggregator — gateway to 500+ external apps via Composio MCP |
+| [claude-coworker](claude-coworker/) | Use Claude CLI proactively as a peer collaborator, with Opus for judgment and Sonnet for explicit execution |
 | [lan-proxy](lan-proxy/) | Expose local services over LAN via Caddy reverse proxy and ufw firewall |
 | [repo-skill-creator](repo-skill-creator/) | Create repo-backed skills here, refresh them with `./install.sh`, and keep the README updated |
 | [opencode-contributor](opencode-contributor/) | Run the opencode contribution workflow from repo checks through PR drafting |
