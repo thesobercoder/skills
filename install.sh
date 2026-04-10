@@ -280,38 +280,54 @@ function installTarget(targetPath, sourcePath, targetBase) {
 }
 
 const targets = (config.install_targets || []).map(expandHome);
+const skillOverrides = config.skill_overrides || {};
 const installed = [];
-const seen = new Set();
+const definedNames = new Set();
+const seenByTarget = new Map();
+for (const targetBase of targets) seenByTarget.set(targetBase, new Set());
 
-pruneExternalRepos(config.third_party_repos || []);
+function resolveTargetsForSkill(skillName) {
+  const override = skillOverrides[skillName];
+  if (!override || !Array.isArray(override.targets) || override.targets.length === 0) {
+    return targets;
+  }
+  const allowed = new Set(override.targets.map(expandHome));
+  const filtered = targets.filter((t) => allowed.has(t));
+  if (filtered.length === 0) {
+    throw new Error(`skill_overrides for ${skillName} resolves to zero valid install targets`);
+  }
+  return filtered;
+}
 
-for (const skillDir of collectLocalSkillDirs()) {
+function installSkill(skillDir) {
   const skillName = parseSkillName(path.join(skillDir, 'SKILL.md'));
-  if (seen.has(skillName)) throw new Error(`Duplicate skill name ${skillName}`);
-  seen.add(skillName);
-  for (const targetBase of targets) {
+  if (definedNames.has(skillName)) throw new Error(`Duplicate skill name ${skillName}`);
+  definedNames.add(skillName);
+  for (const targetBase of resolveTargetsForSkill(skillName)) {
     installTarget(path.join(targetBase, skillName), skillDir, targetBase);
+    seenByTarget.get(targetBase).add(skillName);
   }
   installed.push({ name: skillName, source: skillDir });
 }
 
+pruneExternalRepos(config.third_party_repos || []);
+
+for (const skillDir of collectLocalSkillDirs()) {
+  installSkill(skillDir);
+}
+
 for (const repoConfig of config.third_party_repos || []) {
   for (const skillDir of resolveRepoSkillDirs(repoConfig)) {
-    const skillName = parseSkillName(path.join(skillDir, 'SKILL.md'));
-    if (seen.has(skillName)) throw new Error(`Duplicate skill name ${skillName}`);
-    seen.add(skillName);
-    for (const targetBase of targets) {
-      installTarget(path.join(targetBase, skillName), skillDir, targetBase);
-    }
-    installed.push({ name: skillName, source: skillDir });
+    installSkill(skillDir);
   }
 }
 
 for (const targetBase of targets) {
   if (!fs.existsSync(targetBase)) continue;
+  const seenHere = seenByTarget.get(targetBase) || new Set();
   for (const entry of fs.readdirSync(targetBase, { withFileTypes: true })) {
     const targetPath = path.join(targetBase, entry.name);
-    if (!seen.has(entry.name) && (isManagedSymlink(targetPath) || isManagedCopy(targetPath))) {
+    if (!seenHere.has(entry.name) && (isManagedSymlink(targetPath) || isManagedCopy(targetPath))) {
       removeTarget(targetPath);
     }
   }

@@ -1,5 +1,10 @@
 {
   "install_targets": ["~/.agents/skills", "~/.claude/skills"],
+  "skill_overrides": {
+    "claude-coworker": {
+      "targets": ["~/.agents/skills"]
+    }
+  },
   "third_party_repos": [
     {
       "repo": "https://github.com/vercel-labs/opensrc",
