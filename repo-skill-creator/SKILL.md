@@ -1,6 +1,6 @@
 ---
 name: repo-skill-creator
-description: Create or update a repo-backed skill that should live in this repository and be installed into `~/.agents/skills` and `~/.claude/skills` via `install.sh`. Use this instead of the generic `skill-creator` workflow whenever the user wants a skill that belongs in this repo, wants to turn a workflow into a repo-backed skill here, or mentions this skills repo or its installer.
+description: Create or update a repo-backed skill that should live in this repository and be installed into `~/.agents/skills` and `~/.claude/skills` via `install.sh`. Use this instead of the generic `skill-creator` workflow whenever the user wants to add or edit a skill in this repo, wants to turn a workflow into a repo-backed skill here, mentions this skills repo or its installer, or names one of the repo-backed skills as the thing to change. If the target skill is ambiguous, confirm it before editing.
 install_mode: materialize
 ---
 
@@ -14,6 +14,7 @@ At a high level, the process goes like this:
 
 - Figure out whether the user wants a new repo-backed skill, an update to an existing one, or just discussion
 - Confirm the actual target skill and deliverable before editing anything
+- If editing, read the existing skill before changing it
 - Use `skill-creator` to draft or improve the skill
 - Apply this repository's install conventions
 - Run `__SKILLS_REPO_ROOT__/install.sh`
@@ -42,8 +43,18 @@ Treat these as hard guardrails:
 - Distinguish between a meta skill, a workflow description, and the real domain skill the user wants.
 - Do not assume that mentioning an existing skill name means that existing skill is the target.
 - Do not update an existing skill just because its name partially matches the conversation.
+- Do not create a new helper or meta skill unless the user explicitly asked for one.
 
 Resolve references like `this`, `that`, or `use this` against the full conversation, not just the most recent pasted artifact.
+
+These guardrails do not override an explicit request. If the user clearly says to edit `repo-skill-creator`, `composio`, or another named repo-backed skill, treat that skill as the target.
+
+Proceed without a clarifying question when the target is explicit, for example:
+
+- the user explicitly names the skill to edit
+- the user gives the repo path of the skill to edit
+- the user explicitly asks for a new skill with a clear name or purpose
+- the user explicitly says the pasted workflow should become a new skill
 
 If there is clear ambiguity about the target, ask one short clarifying question before making changes.
 
@@ -129,12 +140,13 @@ Do not add `install_mode: materialize` unless the skill actually needs that beha
 
 1. Load and follow `skill-creator` for the actual skill-writing process.
 2. Confirm the actual target skill and whether you are creating or editing.
-3. If editing an existing repo-backed skill, preserve its directory name and `name` frontmatter unless the user explicitly wants a rename.
-4. Create or edit the skill directory at `__SKILLS_REPO_ROOT__/<skill-name>`.
-5. Write `SKILL.md` and any bundled resources there.
-6. Update `README.md` so `## Skills In This Repo` stays accurate when a repo-backed skill is added, renamed, or removed.
-7. Run `__SKILLS_REPO_ROOT__/install.sh` from the repo root so the install targets are refreshed.
-8. Verify the installed paths with `ls -l ~/.agents/skills/<skill-name> ~/.claude/skills/<skill-name>`.
+3. If editing an existing repo-backed skill, read its current `SKILL.md` before changing it.
+4. If editing an existing repo-backed skill, preserve its directory name and `name` frontmatter unless the user explicitly wants a rename.
+5. Create or edit the skill directory at `__SKILLS_REPO_ROOT__/<skill-name>`.
+6. Write `SKILL.md` and any bundled resources there.
+7. Update `README.md` so `## Skills In This Repo` stays accurate when a repo-backed skill is added, renamed, or removed.
+8. Run `__SKILLS_REPO_ROOT__/install.sh` from the repo root so the install targets are refreshed.
+9. Verify the installed paths with `ls -l ~/.agents/skills/<skill-name> ~/.claude/skills/<skill-name>`.
 
 If the skill uses `install_mode: materialize`, verify that the installed target is a directory copy instead of a symlink.
 
