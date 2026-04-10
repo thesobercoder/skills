@@ -44,10 +44,7 @@
     },
     {
       "repo": "https://github.com/pbakaus/impeccable",
-      "only": [
-        "source/skills/frontend-design",
-        "source/skills/teach-impeccable"
-      ]
+      "only": ["source/skills/impeccable"]
     },
     {
       "repo": "https://github.com/kepano/obsidian-skills",
