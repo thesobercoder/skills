@@ -1,6 +1,6 @@
 ---
 name: claude-coworker
-description: Use the Claude CLI as a peer collaborator. Trigger whenever you are about to delegate work to another Claude instance, compare Opus vs Sonnet, decide whether to add `--dangerously-skip-permissions`, run parallel Claude CLI subtasks, or continue a Claude session with an explicit UUID. This skill defines the house rules for Claude coworker delegation: stay in the Opus/Sonnet frame, keep orchestration with the main agent, and use explicit session IDs for deterministic continuity.
+description: "Use the Claude CLI as a peer collaborator. Trigger whenever you are about to delegate work to another Claude instance, compare Opus vs Sonnet, decide whether to add `--dangerously-skip-permissions`, run parallel Claude CLI subtasks, or continue a Claude session with an explicit UUID. This skill defines the house rules for Claude coworker delegation: stay in the Opus/Sonnet frame, keep orchestration with the main agent, and use explicit session IDs for deterministic continuity."
 ---
 
 # Claude Coworker
