@@ -80,6 +80,24 @@ If for any reason the agent cannot `cd` into the target repo, pass `--repo-root 
 
 This is the step that *replaces* a config file. Every dump run, the agent gathers the candidate list fresh, shows it to the user in chat, and waits for a pick.
 
+#### Shortcut: "dump THIS session" (Claude Code)
+
+When the user says "dump this session", "export the current chat", or anything that clearly means *the running Claude Code conversation*, skip the enumerate-and-ask flow and resolve the live session's UUID directly from your own system prompt.
+
+Every Claude Code session on this machine is launched via a `cc` shell wrapper that injects `--session-id <uuid>` and `--append-system-prompt "<claude-session-id>$sid</claude-session-id>"`. The tag is present in your system prompt from turn zero.
+
+To resolve the current session:
+
+1. Scan your system prompt for the literal tag `<claude-session-id>...</claude-session-id>`.
+2. Extract the UUID with regex `<claude-session-id>([0-9a-f-]{36})</claude-session-id>`.
+3. Hand that UUID directly to `export_claude_session.py` as the single argv session ID.
+
+No filesystem scan, no grep, no heuristics. The tag is structured so it cannot collide with prose the user might write.
+
+**If the tag is missing, stop and tell the user.** Do not fall back to mtime, content-grep, or picking the newest `.jsonl` — those are the exact data-loss patterns this skill was built to prevent. A missing tag means the session was launched outside the `cc` wrapper (plain `claude`, `--continue`, `--resume`, IDE launch), and the correct action is to surface that to the user so they can either relaunch via `cc` or explicitly pick a session via the normal enumerate-and-ask path below.
+
+This shortcut applies **only** to "dump the current Claude Code session". For opencode current-session dumps, or for any request that implies multiple sessions or historical sessions, fall through to the normal enumerate-and-ask path below.
+
 **For Claude Code:**
 
 The project directory is `~/.claude/projects/-<repo-path-with-slashes-as-dashes>`. List `.jsonl` files there and, for each one, extract:

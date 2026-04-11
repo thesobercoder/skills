@@ -24,12 +24,12 @@ Most skills are installed as symlinks. Skills with `install_mode: materialize` a
 
 | Skill | Description |
 |-------|-------------|
-| [prd-manager](prd-manager/) | Manage the lifecycle of a PRD across grill-me, write-a-prd, and prd-to-issues via a single GitHub issue, agent-agnostic |
 | [composio](composio/) | Universal service aggregator — gateway to 500+ external apps via Composio MCP |
 | [claude-coworker](claude-coworker/) | Use Claude CLI proactively as a peer collaborator, with Opus for judgment and Sonnet for explicit execution |
 | [lan-proxy](lan-proxy/) | Expose local services over LAN via Caddy reverse proxy and ufw firewall |
 | [repo-skill-creator](repo-skill-creator/) | Create repo-backed skills here, refresh them with `./install.sh`, and keep the README updated |
 | [self-evolve](self-evolve/) | Reflect on the current session and propose durable skill improvements based on corrections, near-misses, and repeatable mistakes |
 | [opencode-contributor](opencode-contributor/) | Run the opencode contribution workflow from repo checks through PR drafting |
+| [ralph](ralph/) | Pick one open GitHub issue, implement the smallest slice test-first via `tdd`, verify, commit with `RALPH:` prefix, update the issue, and halt |
 | [session-dump](session-dump/) | Extract Claude Code and opencode session content into committed markdown transcripts under a repo's `.plan/` directory |
 | [user-service](user-service/) | Create and manage systemd user-level services for CLI tools |
