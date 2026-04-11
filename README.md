@@ -31,4 +31,5 @@ Most skills are installed as symlinks. Skills with `install_mode: materialize` a
 | [repo-skill-creator](repo-skill-creator/) | Create repo-backed skills here, refresh them with `./install.sh`, and keep the README updated |
 | [self-evolve](self-evolve/) | Reflect on the current session and propose durable skill improvements based on corrections, near-misses, and repeatable mistakes |
 | [opencode-contributor](opencode-contributor/) | Run the opencode contribution workflow from repo checks through PR drafting |
+| [session-dump](session-dump/) | Extract Claude Code and opencode session content into committed markdown transcripts under a repo's `.plan/` directory |
 | [user-service](user-service/) | Create and manage systemd user-level services for CLI tools |
