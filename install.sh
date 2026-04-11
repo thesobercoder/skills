@@ -253,9 +253,15 @@ function ensureSymlink(targetPath, sourcePath) {
   const existing = fs.lstatSync(targetPath, { throwIfNoEntry: false });
   if (existing) {
     if (existing.isSymbolicLink()) {
-      const current = fs.realpathSync(targetPath);
       const desired = fs.realpathSync(sourcePath);
-      if (current === desired) return;
+      try {
+        const current = fs.realpathSync(targetPath);
+        if (current === desired) return;
+      } catch (error) {
+        if (!error || error.code !== 'ENOENT') {
+          throw error;
+        }
+      }
       fs.unlinkSync(targetPath);
     } else {
       throw new Error(`Refusing to replace non-symlink ${targetPath}`);
