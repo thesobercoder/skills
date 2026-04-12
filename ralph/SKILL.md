@@ -35,7 +35,32 @@ gh repo view --json nameWithOwner
 git log --grep='^RALPH:' -n 10 --format='%H %s'
 ```
 
-Then use `gh api graphql` to fetch the native sub-issue tree for the open `kind:prd` issue(s): each PRD's ordered epic children and each epic's ordered task children, including labels, state, and native `blockedBy` relationships.
+Then use `gh api graphql` with one stable query shape to fetch the native sub-issue tree for the open `kind:prd` issue(s): each PRD's ordered epic children and each epic's ordered task children, including labels, state, and native `blockedBy` relationships.
+
+```bash
+gh api graphql -f query='query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      number
+      title
+      state
+      labels(first: 20) { nodes { name } }
+      blockedBy(first: 100) { nodes { number title state } }
+      subIssues(first: 100) {
+        nodes {
+          number
+          title
+          state
+          labels(first: 20) { nodes { name } }
+          blockedBy(first: 100) { nodes { number title state } }
+        }
+      }
+    }
+  }
+}' -F owner=<owner> -F name=<repo> -F number=<prd-number>
+```
+
+Reusing one known-good query is better than inventing a new traversal every run, because the whole point of this version of Ralph is deterministic graph-following.
 
 Read the open issues into context. Read the recent `RALPH:` commits too — they tell you what previous passes already finished and reduce the risk of picking a task whose issue state has drifted.
 
@@ -174,7 +199,7 @@ Then stop. Do not start another pass.
 
 **Delegate TDD to the `tdd` skill.** Red-green-refactor has specific failure modes — horizontal slicing, over-mocking, testing implementation details — and the `tdd` skill already encodes the corrections. Reimplementing them here would duplicate work and drift. The delegation keeps the TDD rules in one place.
 
-**Delegate UI verification to `agent-browser`.** Browser automation has its own rules (dev server lifecycle, selector flakiness, evidence capture). The `agent-browser` skill owns them. Ralph decides *when* to verify visually; *how* is not ralph's job.
+**Delegate UI verification to `agent-browser`.** Browser automation has its own rules (dev server lifecycle, selector flakiness, evidence capture). The `agent-browser` skill owns them. Ralph decides _when_ to verify visually; _how_ is not ralph's job.
 
 **No hardcoded feedback-loop commands.** Every repo is different. A hardcoded list of `npm run test` / `pytest` / `cargo test` goes stale the moment you cross runtimes. Telling the agent "figure out how this repo verifies itself" is both more general and more honest about what the agent is capable of.
 

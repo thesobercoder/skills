@@ -60,6 +60,105 @@ Ensure these labels exist:
 
 If the repo already uses `kind:hitl`, preserve and honor it. Avoid adding extra labels unless the user explicitly asks for them; extra taxonomy usually makes the graph noisier, not clearer.
 
+## Fast gh patterns
+
+Prefer these `gh` patterns before inventing a search strategy from scratch. Reusing the same small set of commands makes the hygiene pass faster and reduces the chance of reading the graph inconsistently.
+
+### Find the target PRD
+
+Use this first when the repo already has a labeled root:
+
+```bash
+gh issue list --state open --label "kind:prd" --json number,title,url
+```
+
+### Read one issue cleanly
+
+Use this when you need the body, labels, and node ID in one place:
+
+```bash
+gh issue view <number> --json id,number,title,body,labels,url
+```
+
+### Fetch the native graph for one issue
+
+Use this query shape when you want one issue plus its immediate native children and blockers:
+
+```bash
+gh api graphql -f query='query($owner: String!, $name: String!, $number: Int!) {
+  repository(owner: $owner, name: $name) {
+    issue(number: $number) {
+      number
+      title
+      state
+      labels(first: 20) { nodes { name } }
+      blockedBy(first: 100) { nodes { number title state } }
+      subIssues(first: 100) {
+        nodes {
+          number
+          title
+          state
+          labels(first: 20) { nodes { name } }
+          blockedBy(first: 100) { nodes { number title state } }
+        }
+      }
+    }
+  }
+}' -F owner=<owner> -F name=<repo> -F number=<issue-number>
+```
+
+This pattern is useful because it gives you enough structure to classify, validate, and order issues without scraping prose.
+
+### List all open tasks quickly
+
+Use this when you need a quick sanity check on the execution layer:
+
+```bash
+gh issue list --state open --label "kind:task" --json number,title,url
+```
+
+### Add a native sub-issue link
+
+Get the parent node ID first:
+
+```bash
+gh issue view <parent-number> --json id --jq .id
+```
+
+Then attach the child by URL:
+
+```bash
+gh api graphql -f query='mutation($issueId: ID!, $subIssueUrl: String!) {
+  addSubIssue(input: {issueId: $issueId, subIssueUrl: $subIssueUrl}) {
+    issue { number }
+    subIssue { number }
+  }
+}' -F issueId=<parent-node-id> -F subIssueUrl=<child-issue-url>
+```
+
+Using the child URL is often simpler than threading multiple node IDs around.
+
+### Add a native blocker edge
+
+Get both node IDs:
+
+```bash
+gh issue view <issue-number> --json id --jq .id
+gh issue view <blocking-number> --json id --jq .id
+```
+
+Then add the edge:
+
+```bash
+gh api graphql -f query='mutation($issueId: ID!, $blockingIssueId: ID!) {
+  addBlockedBy(input: {issueId: $issueId, blockingIssueId: $blockingIssueId}) {
+    issue { number }
+  }
+}' -F issueId=<issue-node-id> -F blockingIssueId=<blocking-node-id>
+```
+
+Use native blocker edges for real dependencies so later agents can query the graph directly instead of reverse-engineering it from body text.
+
 ## Workflow
 
 ### 1. Identify the target PRD
