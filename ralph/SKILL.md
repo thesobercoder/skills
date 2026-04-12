@@ -1,58 +1,72 @@
 ---
 name: ralph
-description: Pick one open GitHub issue, break it into the smallest actionable slice, implement that slice test-first via the `tdd` skill, verify it (including UI verification via `agent-browser` when relevant), commit with a `RALPH:` prefix, and close or update the issue — all in a single invocation with no looping. Trigger whenever the user says "ralph", "run ralph", "do a ralph pass", "grab the next issue", "work the next issue", "pick up a task", "grind an issue", "knock out a ticket", "take the next one off the backlog", or anything that implies "start from the issue list, do one unit of real work, commit it, and stop so I can review". Also trigger when the user asks to "work through issues manually" or wants a token-budget-conscious alternative to a continuous autonomous loop. Do not trigger for PRD writing (use `write-a-prd`), PRD decomposition (use `prd-to-issues`), bulk issue triage, or requests that explicitly want multiple issues handled in one session — ralph is deliberately one-issue-at-a-time.
+description: Work one GitHub implementation task from a PRD-derived backlog, test-first, then stop for review. Use whenever the user says "ralph", "run ralph", "do a ralph pass", "grab the next issue", "work the next issue", "pick up a task", "grind an issue", "knock out a ticket", or asks for a token-budget-conscious one-issue pass instead of a continuous autonomous loop. This version expects a structured native GitHub hierarchy with `kind:prd`, `kind:epic`, and `kind:task`, plus native sub-issues and blocker links, and it uses that graph to pick the next task deterministically. Do not trigger for PRD writing (`write-a-prd`), PRD decomposition (`prd-to-issues`), bulk issue triage, or requests that explicitly want multiple issues handled in one session.
 ---
 
 # Ralph
 
-A skill for running a single disciplined "work one issue" pass against a GitHub repo: list open issues, pick one, implement the smallest useful slice test-first, verify, commit, and update the issue. One invocation = one issue. Then stop and report.
+Use this skill for a single disciplined "work one task" pass against a GitHub repo: inspect the backlog graph, pick the next execution unit, implement the smallest useful slice test-first, verify it, commit it, update GitHub, and stop.
 
-Ralph is the manual, token-budget-conscious counterpart to continuous autonomous loops. The name and the core shape come from Matt Pocock's `ralph/once.sh` experiment — a shell script that feeds open issues plus recent `RALPH:` commits back into an agent and lets it pick up where it left off. This skill is the same idea without the shell wrapper, with hard rails added for TDD, PRD discipline, and one-at-a-time execution.
+Ralph is the manual, token-budget-conscious counterpart to continuous autonomous loops. The original shape came from Matt Pocock's `ralph/once.sh` experiment — feed the agent the issue set plus the recent `RALPH:` commits, let it do one unit of real work, then stop so a human can review. This version keeps that cadence but adds stricter PRD hierarchy rules, TDD discipline, and deterministic task selection.
 
 ## Hard rules
 
-- **Work one issue per invocation.** Do not loop. Do not start a second issue after finishing the first. When the user wants another pass, they will ask.
-- **Skip issues that lack a `## Parent PRD` header at the top of the body.** Task issues produced by `prd-to-issues` always reference their parent PRD explicitly. Issues without that header are PRDs themselves or untyped scratch, and ralph does not guess.
-- **Delegate implementation to the `tdd` skill.** Do not freestyle the test writing, do not write all tests up front, and do not write implementation first. Follow `tdd`'s red-green-refactor loop one tracer bullet at a time.
-- **Commit only when every discovered feedback loop is green.** Fix failures, rerun, commit. Never commit red.
-- **Halt and report after the commit and issue update.** Do not refactor "while in the area", do not pick another issue, do not restart TDD. Report and wait.
+- **Work one `kind:task` issue per invocation.** The review checkpoint is the whole point, so stop after one real unit of work.
+- **Treat `kind:task` as the execution unit.** `kind:epic` and `kind:prd` are rollups; when they still have open children, they should guide selection rather than become the thing you implement directly.
+- **Trust the native GitHub graph first.** Use native sub-issues for hierarchy and order, and use native blockers for dependencies. If GitHub already knows the structure, do not replace it with improvised heuristics.
+- **Treat malformed hierarchy as a blocker, not as an invitation to improvise.** If a `kind:task` lacks a parent epic, an epic lacks a parent PRD, a `kind:epic` has no child tasks, or a `kind:prd` has no child epics, stop and tell the user exactly what is broken.
+- **Treat `kind:hitl` as opt-in.** Those tasks exist for moments when the user wants a human in the loop, not for silent autonomous pickup.
+- **Keep `## Parent PRD` as a sanity check.** Native hierarchy is the source of truth, but the header keeps a task understandable when it is read on its own.
+- **Delegate implementation to the `tdd` skill.** That keeps the red-green-refactor rules in one place instead of recreating them ad hoc inside Ralph.
+- **Commit only when every discovered feedback loop is green.** Green feedback loops are the boundary between a useful pass and a misleading one.
+- **Halt and report after the commit and issue update.** Do not keep going just because there is more nearby work.
 
-If the `tdd` skill is not installed, stop before writing implementation code and tell the user. If the `agent-browser` skill is not installed and the task is UI-facing, tell the user and let them decide whether to proceed without visual verification. If `gh` is not authenticated for the target repo, stop. Ralph runs do not half-happen.
+If the `tdd` skill is not installed, stop before writing implementation code and tell the user. If the `agent-browser` skill is not installed and the task is UI-facing, tell the user and let them decide whether to proceed without visual verification. If `gh` is not authenticated for the target repo, stop. Ralph is only useful when the whole loop can complete.
 
 ## Workflow
 
-### 1. Enumerate open issues
+### 1. Enumerate the issue hierarchy
 
 Run:
 
 ```bash
 gh issue list --state open --json number,title,body,labels,comments
+gh repo view --json nameWithOwner
 git log --grep='^RALPH:' -n 10 --format='%H %s'
 ```
 
-Read the issues into context. Read the recent `RALPH:` commits — they show what previous passes already finished and reduce the risk of picking a task whose issue is stale.
+Then use `gh api graphql` to fetch the native sub-issue tree for the open `kind:prd` issue(s): each PRD's ordered epic children and each epic's ordered task children, including labels, state, and native `blockedBy` relationships.
 
-### 2. Filter to eligible task issues
+Read the open issues into context. Read the recent `RALPH:` commits too — they tell you what previous passes already finished and reduce the risk of picking a task whose issue state has drifted.
 
-Drop every issue whose body does not contain a `## Parent PRD` header near the top. Keep the rest.
+### 2. Validate and filter to eligible task issues
 
-If zero issues remain, halt and tell the user:
+Use the hierarchy, labels, and headers together:
 
-> No eligible task issues — remaining open issues have no `## Parent PRD` header. Run `prd-to-issues` on the PRD to generate tasks, or link existing issues manually.
+- Keep only open issues labelled `kind:task`.
+- Require each task body to contain a `## Parent PRD` header near the top.
+- Require each task to appear as a native child of a `kind:epic` issue.
+- Require each epic to appear as a native child of a `kind:prd` issue.
+- Require every open epic to have at least one child task.
+- Require every open PRD to have at least one child epic.
 
-Do not fall back to "just pick the smallest-looking issue anyway".
+If the tree is malformed, halt and tell the user exactly what is wrong. Tell them to run `prd-hygiene` to normalize the PRD/epic/task graph before trying Ralph again. Do not fall back to "just pick the smallest-looking issue anyway".
+
+If zero eligible tasks remain, halt and tell the user:
+
+> No eligible task issues — either there are no open `kind:task` issues, or the task/epic/PRD hierarchy is malformed. Run `prd-hygiene` to normalize the graph first.
 
 ### 3. Pick the next task
 
-From the eligible set, pick the highest-priority item. Break ties by age, oldest first. Priority buckets, highest first:
+Traverse the backlog in native GitHub order, not by vibes:
 
-1. **Critical bugfixes** — labelled `bug`/`critical`/`regression`, or bodies that describe a broken behavior blocking other work.
-2. **Development infrastructure** — tests, types, CI, dev scripts, build tooling.
-3. **Tracer bullets for new features** — the thinnest end-to-end slice of a new feature that exercises every layer.
-4. **Polish and quick wins** — small visible improvements, low risk.
-5. **Refactors** — last. Only worth it when unblocking a later task.
+1. Walk open `kind:prd` issues in their native sub-issue order.
+2. Inside each PRD, walk open `kind:epic` children in their native order.
+3. Before considering an epic eligible, inspect its native `blockedBy` issues. If any blocker issue is still open, skip that epic for this pass.
+4. Inside the first eligible epic, walk open `kind:task` children in native order and pick the first one whose own native `blockedBy` issues are all closed.
+5. If that task has the `kind:hitl` label, stop and ask the user whether they want to do that human-in-the-loop task now. If not, skip it and continue searching. If every remaining eligible task is `kind:hitl`, stop and report that.
 
-When the bucket is ambiguous, ask the user before picking. Do not invent a bucket to justify a favorite.
+If ordering data is missing or contradictory, stop and report the malformed backlog rather than improvising a priority rule. Determinism is more valuable here than cleverness.
 
 ### 4. Reduce to the smallest useful unit
 
@@ -62,13 +76,13 @@ Read the chosen issue's body, comments, and acceptance criteria. Pick the smalle
 - can be validated by the repo's feedback loops
 - is independently committable
 
-When the whole issue fits one slice, take the whole issue. Otherwise, work only one slice this invocation and leave the rest as a comment on the issue for the next pass.
+When the whole issue fits one slice, take the whole issue. Otherwise, work only one slice this invocation and leave the rest as a comment on the issue for the next pass. The point is to keep each pass independently committable and reviewable.
 
 When exploration reveals the slice is actually much larger than it looked (hidden refactor, missing infra, cross-cutting change), stop, say so explicitly to the user, propose a smaller slice that still unblocks the original, and wait for confirmation. This is the "HANG ON A SECOND" moment from the original ralph prompt — be loud about it.
 
 ### 5. Explore the repo
 
-Load the context you need for the change: related files, existing tests, relevant interfaces, the public API the change will touch. Stop exploring the moment you can describe the change in one sentence. Do not try to read every file in the repo.
+Load the context you need for the change: related files, existing tests, relevant interfaces, the public API the change will touch. Stop exploring the moment you can describe the change in one sentence. Over-reading the repo burns time and tends to make slices look larger than they are.
 
 ### 6. Implement via the `tdd` skill
 
@@ -113,40 +127,50 @@ Blockers / notes for next pass:
 
 Commit through the normal git hooks. Do not pass `--no-verify`.
 
-### 9. Update the issue
+### 9. Update the issue and roll up the hierarchy
 
-When the slice closed the whole issue — every acceptance criterion ticked, nothing meaningful left — close it:
+When the slice closed the whole task issue — every acceptance criterion ticked, nothing meaningful left — close it:
 
 ```bash
-gh issue close <n> --comment "Closed by <commit-sha>. PRD #<parent>."
+gh issue close <task> --comment "Closed by <commit-sha>. PRD #<parent-prd>."
 ```
 
 When the slice only made progress, leave a comment summarizing what was done, what is left, and anything the next pass needs to know:
 
 ```bash
-gh issue comment <n> --body "..."
+gh issue comment <task> --body "..."
 ```
 
-Do not close an issue that still has open acceptance criteria, even if the part you worked on is done.
+Do not close a task that still has open acceptance criteria, even if the part you worked on is done. A clean partial-progress comment is better than a misleading closure.
+
+When a task closes, immediately inspect its parent epic:
+
+- If the epic still has any open child tasks, leave the epic open.
+- If all child tasks are closed, close the parent epic with a rollup comment referencing the commit SHA and PRD.
+
+Then inspect the parent PRD:
+
+- If the PRD still has any open child epics, leave the PRD open.
+- If all child epics are closed, close the PRD with a rollup comment referencing the commit SHA.
 
 ### 10. Report and halt
 
 Reply to the user with:
 
-- the issue picked and the priority bucket it came from
+- the task picked and where it sat in the PRD/epic/task hierarchy
 - the slice actually implemented, and what was deferred
 - the commit SHA and one-line summary
 - the feedback loops that ran and their status
-- whether the issue was closed or commented
+- whether the task was closed or commented, and whether the parent epic / PRD rolled up to closed
 - anything surprising: hidden scope, rejected paths, follow-ups worth filing
 
 Then stop. Do not start another pass.
 
 ## Why these rules exist
 
-**One issue per invocation.** The review checkpoint is the whole point. A continuous loop optimizes throughput but erodes the user's ability to catch a wrong turn early. Running ralph twice is cheap; running it wrong for an hour is not. Token budget is real but secondary — the primary benefit of the hard stop is review cadence.
+**One task per invocation.** The review checkpoint is the whole point. A continuous loop optimizes throughput but erodes the user's ability to catch a wrong turn early. Running Ralph twice is cheap; running it wrong for an hour is not. Token budget is real but secondary — the main benefit of the hard stop is review cadence.
 
-**`## Parent PRD` as the task filter.** An earlier pass accidentally started work on a whole-product PRD issue and nearly implemented an entire app in one commit. The PRD header is a structural signal (not a content guess) and comes directly from `prd-to-issues`' output convention, so it is reliable across every repo that uses that workflow. Content-based heuristics ("the issue body looks like a PRD") are too fragile — they were tried first and failed.
+**Native sub-issue hierarchy plus `kind:*` labels.** Earlier passes could still land on a whole PRD or epic and start slicing it ad hoc. The stricter model is: tasks are execution units, epics are rollups, PRDs are top-level rollups. Native GitHub sub-issues provide stable ordering, and `kind:task` / `kind:epic` / `kind:prd` make those roles explicit. The `## Parent PRD` header remains a sanity check, not the primary selector.
 
 **Delegate TDD to the `tdd` skill.** Red-green-refactor has specific failure modes — horizontal slicing, over-mocking, testing implementation details — and the `tdd` skill already encodes the corrections. Reimplementing them here would duplicate work and drift. The delegation keeps the TDD rules in one place.
 
@@ -158,7 +182,7 @@ Then stop. Do not start another pass.
 
 ## Common scenarios
 
-**No issues have `## Parent PRD` headers, but there is real work to do.** Tell the user. Suggest running `prd-to-issues` on the parent PRD first, or linking manual task issues to their parent. Do not start on an untyped issue.
+**The backlog tree is malformed.** If a task is missing its epic parent, an epic is missing its PRD parent, an epic has no child tasks, or a PRD has no child epics, stop and tell the user exactly what is broken. Tell them to run `prd-hygiene`, because this is backlog surgery rather than execution work. Do not guess or flatten the hierarchy yourself.
 
 **The chosen slice turns out to be a refactor.** Stop, tell the user, propose a smaller refactor-free slice that still makes progress. Wait for confirmation before continuing.
 
@@ -166,11 +190,13 @@ Then stop. Do not start another pass.
 
 **The user asks for two issues in one pass.** Push back once: one issue per pass is the whole point, and running ralph twice is cheaper and safer than bending the rule. When the user confirms they really want two, agree, work the first issue fully (commit and close/comment), then start the second from scratch as if it were a new invocation. Do not interleave.
 
-**The last `RALPH:` commit left a blocker note on a half-finished task.** Read the note. When the task is still the right next thing and the blocker is resolved, pick it up. When the blocker is still present, pick a different eligible task and leave the blocked one alone.
+**The last `RALPH:` commit left a blocker note on a half-finished task.** Read the note. When the task is still the right next thing and its native blockers are resolved, pick it up. When the blocker is still present, pick a different eligible task and leave the blocked one alone.
+
+**The next task in order is `kind:hitl`.** Stop and ask the user whether they want to do that human-in-the-loop task now. Do not silently skip into a later task unless the user explicitly agrees.
 
 ## Limitations
 
 - **Single repo per invocation.** Ralph does not coordinate across repos. When the task spans repos, do the in-repo part and leave a comment describing the cross-repo follow-up.
-- **Relies on the `## Parent PRD` convention.** Repos that do not use `prd-to-issues` (or an equivalent template) need the user to flag eligible issues manually, because the filter would otherwise exclude everything.
+- **Relies on native sub-issues plus `kind:*` labels.** Repos that do not maintain that hierarchy will need manual triage before Ralph can pick deterministically.
 - **No autonomous looping.** Wrapping ralph in an external scheduler to make it continuous defeats the point of the hard stop. Do not patch that out.
 - **`gh` CLI required.** Ralph's issue read/write path uses `gh`. Without authenticated `gh`, stop.
