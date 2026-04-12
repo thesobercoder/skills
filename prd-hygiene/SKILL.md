@@ -72,6 +72,8 @@ Use this first when the repo already has a labeled root:
 gh issue list --state open --label "kind:prd" --json number,title,url
 ```
 
+If that returns nothing, infer the PRD from task bodies by reading the `## Parent PRD` header on open `kind:task` issues and collecting the referenced issue numbers. If they all point to one issue, that issue is the PRD root.
+
 ### Read one issue cleanly
 
 Use this when you need the body, labels, and node ID in one place:
@@ -169,9 +171,11 @@ Prefer, in order:
 
 1. an explicit issue number the user gave you
 2. one open issue already labeled `kind:prd`
-3. one obvious PRD issue produced by the earlier workflow
+3. one unique PRD number inferred from the `## Parent PRD` headers on open `kind:task` issues
 
 If there are multiple plausible PRDs, ask one short question. Restructuring the wrong tree is much more expensive than asking once.
+
+If no `kind:prd` label exists yet but the root is otherwise clear, that is fine. This skill should classify the root issue and add `kind:prd` as part of the normalization pass. The purpose of the discovery step is to find the PRD reliably, not to require that earlier skills already labeled it.
 
 ### 2. Read the current graph
 
