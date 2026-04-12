@@ -133,11 +133,14 @@ If the user explicitly wants parallel branches, respect that. Otherwise, prefer 
 
 ### 6. Keep task bodies structurally compatible with Ralph
 
-For each `kind:task` issue, make sure the body still contains `## Parent PRD` near the top.
+For each `kind:task` issue, make sure the body still contains these headers near the top:
 
-Why: Ralph now uses native hierarchy as the source of truth, but the header is still a valuable sanity check and makes the issue self-describing when read in isolation.
+- `## Parent PRD`
+- `## Parent epic`
 
-If the header is missing and you can repair it unambiguously, repair it. If not, ask. The point is to keep each task readable in isolation as well as inside the graph.
+Why: Ralph now uses native hierarchy as the source of truth, but these headers are still valuable sanity checks and make a task readable when it is opened in isolation. They also prevent a clean native graph from drifting out of sync with the task template that Ralph expects.
+
+If one or both headers are missing and you can repair them unambiguously from the native graph, repair them. If not, ask. The point is to keep each task readable in isolation as well as inside the graph.
 
 ### 7. Validate the result
 
@@ -151,6 +154,7 @@ Check for these failure modes:
 - a PRD with no child epics
 - duplicate placement of one task under multiple epics
 - native blockers that point the wrong direction
+- task bodies whose `## Parent PRD` / `## Parent epic` headers disagree with the native graph
 - multiple equally eligible next tasks when the user wanted a strict queue
 
 If the graph is still ambiguous, do not pretend the hygiene pass succeeded. Report the ambiguity clearly so the next agent is not forced to rediscover it under execution pressure.
@@ -209,6 +213,10 @@ Stop and tell the user this skill is too early. They need `prd-to-issues` first 
 ### The repo has an epic with no child tasks
 
 Treat that as malformed backlog. Do not let Ralph pick the epic directly. An epic without tasks is a planning problem, not an execution target.
+
+### The native graph is correct, but task headers are stale or incomplete
+
+Repair the headers from the native graph when the mapping is unambiguous. This is exactly the kind of drift this skill is supposed to fix.
 
 ### The user wants parallel work, not a single strict lane
 
