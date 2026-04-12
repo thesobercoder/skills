@@ -5,7 +5,7 @@ description: Work one GitHub implementation task from a PRD-derived backlog, tes
 
 # Ralph
 
-Use this skill for a single disciplined "work one task" pass against a GitHub repo: inspect the backlog graph, pick the next execution unit, implement the smallest useful slice test-first, verify it, commit it, update GitHub, and stop.
+Use this skill for a single disciplined "work one task" pass against a GitHub repo: inspect the backlog graph, pick the next execution unit, implement the smallest useful slice test-first, verify it, commit it, push it, update GitHub, and stop.
 
 Ralph is the manual, token-budget-conscious counterpart to continuous autonomous loops. The original shape came from Matt Pocock's `ralph/once.sh` experiment — feed the agent the issue set plus the recent `RALPH:` commits, let it do one unit of real work, then stop so a human can review. This version keeps that cadence but adds stricter PRD hierarchy rules, TDD discipline, and deterministic task selection.
 
@@ -19,7 +19,8 @@ Ralph is the manual, token-budget-conscious counterpart to continuous autonomous
 - **Keep `## Parent PRD` as a sanity check.** Native hierarchy is the source of truth, but the header keeps a task understandable when it is read on its own.
 - **Delegate implementation to the `tdd` skill.** That keeps the red-green-refactor rules in one place instead of recreating them ad hoc inside Ralph.
 - **Commit only when every discovered feedback loop is green.** Green feedback loops are the boundary between a useful pass and a misleading one.
-- **Halt and report after the commit and issue update.** Do not keep going just because there is more nearby work.
+- **Push after a successful commit.** A Ralph pass is not really complete until the resulting commit is on the remote branch the user will review.
+- **Halt and report after the commit, push, and issue update.** Do not keep going just because there is more nearby work.
 
 If the `tdd` skill is not installed, stop before writing implementation code and tell the user. If the `agent-browser` skill is not installed and the task is UI-facing, tell the user and let them decide whether to proceed without visual verification. If `gh` is not authenticated for the target repo, stop. Ralph is only useful when the whole loop can complete.
 
@@ -129,7 +130,7 @@ When the task touches UI (pages, components, visual output), invoke the `agent-b
 
 Fix every failure before committing. Do not commit until every discovered gate is green.
 
-### 8. Commit with a `RALPH:` prefix
+### 8. Commit with a `RALPH:` prefix and push
 
 Use this commit message shape:
 
@@ -151,6 +152,12 @@ Blockers / notes for next pass:
 ```
 
 Commit through the normal git hooks. Do not pass `--no-verify`.
+
+After the commit succeeds, push the current branch.
+
+- If the branch already has an upstream, use a normal `git push`.
+- If it does not have an upstream but `origin` exists, use `git push -u origin HEAD`.
+- If there is no usable remote, stop and tell the user before closing or commenting on the issue. The local commit can stay, but the Ralph pass should be reported as not fully published.
 
 ### 9. Update the issue and roll up the hierarchy
 
@@ -184,7 +191,7 @@ Reply to the user with:
 
 - the task picked and where it sat in the PRD/epic/task hierarchy
 - the slice actually implemented, and what was deferred
-- the commit SHA and one-line summary
+- the commit SHA, push result, and one-line summary
 - the feedback loops that ran and their status
 - whether the task was closed or commented, and whether the parent epic / PRD rolled up to closed
 - anything surprising: hidden scope, rejected paths, follow-ups worth filing
@@ -205,6 +212,8 @@ Then stop. Do not start another pass.
 
 **`RALPH:` commit prefix.** The next ralph pass greps for `^RALPH:` to reconstruct prior work. Break the prefix convention and future passes silently lose context.
 
+**Push after commit.** A local-only Ralph commit leaves the repo in an awkward half-published state: the issue may say the work is done, but the branch the user expects to review does not actually contain it yet. Pushing before the issue update keeps the GitHub issue, the branch, and the user's review flow aligned.
+
 ## Common scenarios
 
 **The backlog tree is malformed.** If a task is missing its epic parent, an epic is missing its PRD parent, an epic has no child tasks, or a PRD has no child epics, stop and tell the user exactly what is broken. Tell them to run `prd-hygiene`, because this is backlog surgery rather than execution work. Do not guess or flatten the hierarchy yourself.
@@ -216,6 +225,8 @@ Then stop. Do not start another pass.
 **The user asks for two issues in one pass.** Push back once: one issue per pass is the whole point, and running ralph twice is cheaper and safer than bending the rule. When the user confirms they really want two, agree, work the first issue fully (commit and close/comment), then start the second from scratch as if it were a new invocation. Do not interleave.
 
 **The last `RALPH:` commit left a blocker note on a half-finished task.** Read the note. When the task is still the right next thing and its native blockers are resolved, pick it up. When the blocker is still present, pick a different eligible task and leave the blocked one alone.
+
+**The commit succeeded but push failed.** Report the local commit SHA, the push error, and the exact point where the flow stopped. Do not pretend the pass completed normally, and do not close the task issue as if the work were fully published.
 
 **The next task in order is `kind:hitl`.** Stop and ask the user whether they want to do that human-in-the-loop task now. Do not silently skip into a later task unless the user explicitly agrees.
 
