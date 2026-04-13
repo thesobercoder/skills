@@ -161,6 +161,14 @@ After the commit succeeds, push the current branch.
 
 ### 9. Update the issue and roll up the hierarchy
 
+Before closing or commenting, update any relevant checkboxes in the issue bodies.
+
+- In the current task, tick the acceptance criteria that are now genuinely complete.
+- In the parent epic, tick checklist items that this task fully satisfied.
+- In the parent PRD, tick checklist items that this task or a just-completed epic genuinely satisfied.
+
+Be conservative. Only tick a checkbox when the completed work makes it clearly true. If the mapping between the implementation and a parent checkbox is ambiguous, leave it alone and mention that ambiguity in the issue comment or final report.
+
 When the slice closed the whole task issue — every acceptance criterion ticked, nothing meaningful left — close it:
 
 ```bash
@@ -192,6 +200,7 @@ Reply to the user with:
 - the task picked and where it sat in the PRD/epic/task hierarchy
 - the slice actually implemented, and what was deferred
 - the commit SHA, push result, and one-line summary
+- any checkboxes updated in the task / epic / PRD bodies
 - the feedback loops that ran and their status
 - whether the task was closed or commented, and whether the parent epic / PRD rolled up to closed
 - anything surprising: hidden scope, rejected paths, follow-ups worth filing
@@ -214,6 +223,8 @@ Then stop. Do not start another pass.
 
 **Push after commit.** A local-only Ralph commit leaves the repo in an awkward half-published state: the issue may say the work is done, but the branch the user expects to review does not actually contain it yet. Pushing before the issue update keeps the GitHub issue, the branch, and the user's review flow aligned.
 
+**Keep checklists truthful.** Checkbox lists in tasks, epics, and PRDs are part of the review surface. When Ralph finishes work but leaves those boxes stale, the graph says one thing and the issue bodies say another. Updating the checklists keeps the execution state legible for both humans and later agent passes.
+
 ## Common scenarios
 
 **The backlog tree is malformed.** If a task is missing its epic parent, an epic is missing its PRD parent, an epic has no child tasks, or a PRD has no child epics, stop and tell the user exactly what is broken. Tell them to run `prd-hygiene`, because this is backlog surgery rather than execution work. Do not guess or flatten the hierarchy yourself.
@@ -229,6 +240,8 @@ Then stop. Do not start another pass.
 **The commit succeeded but push failed.** Report the local commit SHA, the push error, and the exact point where the flow stopped. Do not pretend the pass completed normally, and do not close the task issue as if the work were fully published.
 
 **The next task in order is `kind:hitl`.** Stop and ask the user whether they want to do that human-in-the-loop task now. Do not silently skip into a later task unless the user explicitly agrees.
+
+**A parent checkbox is only partially satisfied.** Leave it unchecked and explain why. Ralph should keep checklists accurate, not optimistic.
 
 ## Limitations
 
