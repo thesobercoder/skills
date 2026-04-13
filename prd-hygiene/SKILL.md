@@ -1,6 +1,6 @@
 ---
 name: prd-hygiene
-description: Normalize a PRD-derived GitHub backlog into a strict native GitHub graph so Ralph can follow it deterministically. Use immediately after `grill-me`, `write-a-prd`, and `prd-to-issues`, or whenever a repo has PRD/epic/task issues still held together by prose instead of native sub-issues and `blockedBy` links. Reach for this skill when the user wants Ralph to "just follow the graph", asks to clean up backlog hygiene, wants ordering or blockers wired correctly, or says the next task should be mechanically obvious even if they do not mention "hygiene" by name.
+description: Normalize a PRD-derived GitHub backlog into a strict native GitHub graph so Ralph can follow it deterministically. Audits every epic's acceptance criteria against its child tasks to find coverage gaps — AC items with no task are silent black holes that no agent will ever work on. Creates missing tasks, sharpens vague task AC, and wires everything with native sub-issues and `blockedBy` links. Use immediately after `grill-me`, `write-a-prd`, and `prd-to-issues`, or whenever a repo has PRD/epic/task issues still held together by prose instead of native links. Reach for this skill when the user wants Ralph to "just follow the graph", asks to clean up backlog hygiene, wants ordering or blockers wired correctly, mentions AC coverage gaps, or says the next task should be mechanically obvious even if they do not mention "hygiene" by name.
 ---
 
 # PRD Hygiene
@@ -21,12 +21,16 @@ Use this skill to make the backlog operational:
 
 - identify the target `kind:prd` issue
 - classify issues as `kind:prd`, `kind:epic`, or `kind:task`
+- audit AC-task coverage: verify every epic acceptance-criteria item is covered by at least one task
+- create missing tasks for uncovered AC items and update existing tasks whose AC is too vague
 - create or fix native GitHub sub-issue links
 - create or fix native GitHub `blockedBy` links
 - make sibling order deterministic
 - leave Ralph with one obvious next task unless the user explicitly wants parallelism
 
 Do this work here instead of inside Ralph because backlog hygiene is repo surgery. Ralph is much more reliable when it can trust the graph instead of inventing one while it is supposed to be implementing code.
+
+The AC coverage audit is especially important because `prd-to-issues` can produce decompositions where the number of tasks under an epic is fewer than the number of AC items on that epic. When that happens, there are AC items that no agent will ever work on — silent black holes in the implementation plan. Ralph closes tasks and ticks their AC, but if an epic AC item has no corresponding task, nobody ticks it and nobody notices until the epic cannot be closed.
 
 ## Preconditions
 
@@ -202,7 +206,41 @@ Normalize the issue kinds:
 
 If an issue's role is ambiguous, ask instead of guessing. A wrong classification poisons the whole tree and pushes the ambiguity downstream into every later run.
 
-### 4. Build the native hierarchy
+### 4. Audit AC-task coverage
+
+This step catches the most damaging class of decomposition error: epic AC items that have no corresponding task. Without this audit, an agent can complete every task under an epic and still leave the epic's AC unfulfilled.
+
+For every epic, read its body and extract each AC checkbox item. Then read the body of every task under that epic and map each task's AC back to the epic's AC. Classify each epic AC item as one of:
+
+- **Covered** — a task exists whose AC clearly addresses this item
+- **Partial gap** — a task exists but its AC is vaguer or narrower than the epic demands (e.g. the epic says "60fps" but the task says "smooth")
+- **Full gap** — no task addresses this item at all
+
+This audit is the most time-consuming step in the hygiene pass but also the most valuable. Use parallel subagents when the epic count is large — batch epics into groups and audit them concurrently.
+
+#### Fixing full gaps
+
+For each full gap, create a new `kind:task` issue. Follow the same body template as existing tasks in the repo (`## Parent PRD`, `## Parent epic`, `## Acceptance criteria`, etc.). Write AC items that are specific enough for an agent to implement and verify without reading the parent epic — the whole point is that the task should be self-contained.
+
+Group related gaps into a single task when they are small and tightly coupled (e.g. two security checks that belong in the same test). Split them when they represent distinct units of work. Use judgment, but err toward one-task-per-gap when unsure — a task that does one thing is easier for Ralph to pick up than a task that does three unrelated things.
+
+#### Fixing partial gaps
+
+For each partial gap, update the existing task body to include the missing specificity. Add the concrete values, thresholds, or behavioral details from the epic AC that the task currently omits. Append a `## Hygiene notes` section at the bottom explaining what was added and why, so future readers can distinguish original AC from hygiene-added AC.
+
+Preserve all existing content when updating a task body. The update is additive — add new AC checkboxes, do not rewrite or remove existing ones.
+
+#### Wiring new tasks into the graph
+
+After creating new tasks, wire them into the native hierarchy immediately — do not defer this to a later step. For each new task:
+
+1. Add it as a native sub-issue of its parent epic
+2. Add a `blockedBy` link to the last existing task in the epic's chain (so the new task comes after the original work)
+3. If multiple new tasks were created for the same epic, chain them with `blockedBy` links in logical order
+
+This keeps the graph deterministic at every point during the hygiene pass. A new task that is not wired is invisible to Ralph.
+
+### 5. Build the native hierarchy
 
 Make the hierarchy explicit with native GitHub sub-issues:
 
@@ -220,7 +258,7 @@ If no native order exists yet, use the most stable explicit ordering signal avai
 
 Do not leave sibling ordering implicit if Ralph is expected to walk the graph deterministically. If GitHub has an order, use it. If it does not, create one intentionally.
 
-### 5. Normalize dependencies
+### 6. Normalize dependencies
 
 Use native `blockedBy` links for real dependency edges.
 
@@ -234,7 +272,7 @@ The goal is not to maximize parallelism. The goal is to remove ambiguity. A slow
 
 If the user explicitly wants parallel branches, respect that. Otherwise, prefer a strict graph that yields one obvious next task.
 
-### 6. Keep task bodies structurally compatible with Ralph
+### 7. Keep task bodies structurally compatible with Ralph
 
 For each `kind:task` issue, make sure the body still contains these headers near the top:
 
@@ -245,7 +283,7 @@ Why: Ralph now uses native hierarchy as the source of truth, but these headers a
 
 If one or both headers are missing and you can repair them unambiguously from the native graph, repair them. If not, ask. The point is to keep each task readable in isolation as well as inside the graph.
 
-### 7. Validate the result
+### 8. Validate the result
 
 Before you stop, verify the graph mechanically.
 
@@ -259,10 +297,14 @@ Check for these failure modes:
 - native blockers that point the wrong direction
 - task bodies whose `## Parent PRD` / `## Parent epic` headers disagree with the native graph
 - multiple equally eligible next tasks when the user wanted a strict queue
+- an epic AC item with no corresponding task (full gap — should have been caught in step 4)
+- a task whose AC is vaguer than its parent epic's AC on the same topic (partial gap)
+- a new task created during the hygiene pass that was not wired into the native graph
+- a closed epic whose tasks are all closed but whose AC is not fully covered (indicates the epic was closed prematurely or tasks were completed without fulfilling all AC)
 
 If the graph is still ambiguous, do not pretend the hygiene pass succeeded. Report the ambiguity clearly so the next agent is not forced to rediscover it under execution pressure.
 
-### 8. Report the next task
+### 9. Report the next task
 
 End with a short execution-facing summary:
 
@@ -325,13 +367,29 @@ Repair the headers from the native graph when the mapping is unambiguous. This i
 
 Respect that, but say so explicitly in the final report. The point of this skill is clarity, not always serial execution.
 
+### An epic has more AC items than tasks
+
+This is the most common decomposition failure. Read the epic body and count AC checkbox items, then count child tasks. If AC items outnumber tasks, some AC items are orphaned. Read every task body to confirm which AC items are actually covered — sometimes one task covers multiple AC items, sometimes it covers none precisely.
+
+Create new tasks for full gaps. Update existing task bodies for partial gaps where the task exists but its AC language is vaguer than the epic demands (e.g. the epic says "16ms latency" but the task just says "fast"). Do not assume an implementer will read the epic — each task should be self-contained.
+
+### A closed epic has AC gaps
+
+If the epic is closed and all its child tasks are closed, but the AC audit reveals gaps, flag this as potential technical debt. The gaps may already be implemented (done as part of other tasks without tracking) or may be genuinely missing. Do not create tasks for closed epics without checking with the user first — reopening a closed epic changes the graph shape and may confuse downstream agents.
+
+### Multiple epics share the same gap pattern
+
+When the same type of gap appears across many epics (e.g. "security verification not covered," "cross-platform consistency not covered"), this indicates a systemic decomposition weakness rather than a one-off miss. Call out the pattern explicitly in the report so the user can decide whether to fix it structurally (e.g. by adding a cross-cutting epic) or per-epic.
+
 ## Output checklist
 
 Before you finish, make sure your reply states:
 
 - what PRD you normalized
-- what you changed in the graph
+- AC coverage audit results: how many epics audited, how many full gaps found, how many partial gaps found, how many new tasks created, how many existing tasks updated
+- what you changed in the graph (links added, blockers wired, tasks created)
 - whether the graph is now deterministic enough for Ralph
+- any remaining gaps that could not be fixed without user input
 - what the next task is
 
 If you cannot answer the last two confidently, the hygiene pass is not done.
